@@ -1,0 +1,4 @@
+export default {
+  BLOCK_ADDED: "BLOCK_ADDED",
+  BLOCK_REMOVED: "BLOCK_REMOVED",
+};
