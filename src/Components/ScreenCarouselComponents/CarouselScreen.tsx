@@ -24,7 +24,7 @@ import Animated, {
   Clock,
 } from "react-native-reanimated";
 import { TapGestureHandler, State } from "react-native-gesture-handler";
-import { withTimingTransition, onGestureEvent, ReText, withSpringTransition } from "react-native-redash";
+import { withTimingTransition, onGestureEvent, ReText, withSpringTransition, timing as timing2 } from "react-native-redash";
 import { useRef } from "react";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import AnimatedIcon from "./AnimatedIcon";
@@ -49,46 +49,6 @@ interface CarouselScreenPropsInt extends CarouselScreenProps {
 
 interface CarouselScreenState {}
 
-function runTiming(clock, value, dest) {
-  const state = {
-    finished: new Animated.Value(0),
-    position: new Animated.Value(0),
-    time: new Animated.Value(0),
-    frameTime: new Animated.Value(0),
-  };
-
-  const config = {
-    duration: 1000,
-    toValue: new Animated.Value(0),
-    easing: Easing.inOut(Easing.ease),
-  };
-
-  return block([
-    cond(
-      clockRunning(clock),
-      [
-        // if the clock is already running we update the toValue, in case a new dest has been passed in
-        set(config.toValue, dest),
-      ],
-      [
-        // if the clock isn't running we reset all the animation params and start the clock
-        set(state.finished, 0),
-        set(state.time, 0),
-        set(state.position, value),
-        set(state.frameTime, 0),
-        set(config.toValue, dest),
-        startClock(clock),
-      ]
-    ),
-    // we run the step here that is going to update position
-    timing(clock, state, config),
-    // if the animation is over we stop the clock
-    cond(state.finished, stopClock(clock)),
-    // we made the block return the updated position
-    state.position,
-  ]);
-}
-
 export class CarouselScreen2 extends React.Component<CarouselScreenPropsInt> {
   pressState: Animated.Value<number>;
   prevPressState: Animated.Value<number>;
@@ -106,7 +66,7 @@ export class CarouselScreen2 extends React.Component<CarouselScreenPropsInt> {
     this.animState = new Animated.Value(props.initialState?.goTo ? 1 : 0);
     this.clock = new Clock();
     this.lastAnimProgress = new Animated.Value(props.initialState?.startAt ? 1 : 0);
-    this.animProgress = runTiming(this.clock, this.lastAnimProgress, this.animState);
+    this.animProgress = timing2({ clock: this.clock, from: this.lastAnimProgress, to: this.animState });
 
     if (props.transitionAnimationProgress) {
       this.animProgress = block([set(props.transitionAnimationProgress as Animated.Value<number>, this.animProgress), this.animProgress]);
@@ -162,15 +122,28 @@ export class CarouselScreen2 extends React.Component<CarouselScreenPropsInt> {
   }
 
   public triggerOpenAnimation() {
+    this.lastAnimProgress.setValue(0);
     this.animState.setValue(1);
   }
 
   public triggerCloseAnimation() {
+    this.lastAnimProgress.setValue(1);
     this.animState.setValue(0);
   }
 
   private debugView() {
     return <ReText text={concat(this.animState, "-", this.animProgress)} style={{ position: "absolute", left: 20, top: 20 }} />;
+  }
+
+  shouldComponentUpdate(nextProps: CarouselScreenPropsInt, nextState: {}, nextContext: {}) {
+    if (nextProps.initialState?.goTo && !nextProps.initialState.startAt) {
+      this.triggerOpenAnimation();
+    }
+    if (!nextProps.initialState?.goTo && nextProps.initialState?.startAt) {
+      this.triggerCloseAnimation();
+    }
+
+    return true;
   }
 
   componentDidMount() {}
