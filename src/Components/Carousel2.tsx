@@ -81,7 +81,7 @@ const Carousel2 = (props: Carousel2Props) => {
     outputRange: props.backgroundColours,
   });
 
-  if (props.animatedBackgroundColourNode) useCode(() => set(props.animatedBackgroundColourNode as Animated.Value<number>, backgroundColourAnimated), []);
+  if (props.animatedBackgroundColourNode) useCode(() => set(props.animatedBackgroundColourNode as Animated.Value<number>, backgroundColourAnimated), [backgroundColourAnimated]);
 
   const setIndexIfNotSame = (val, check) => cond(neq(val, check), [set(val, check), call([val], (args) => props.onIndexChanged?.(args[0]))]);
 
@@ -132,11 +132,11 @@ const Carousel2 = (props: Carousel2Props) => {
 
   return (
     <PanGestureHandler {...gestureHandler} enabled={props.scrollEnabled ?? true}>
-      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: backgroundColourAnimated }]} onLayout={onLayout}>
+      <Animated.View style={[StyleSheet.absoluteFill]} onLayout={onLayout}>
         <Animated.View style={[styles.horizontalScrollPanel, { transform: [{ translateX: translateX.current }] }]}>
           {containerSize &&
             props.screenRenderFunctions.map((screenRenderFunction: any) => (
-              <Animated.View style={{ width: containerSize?.width, height: containerSize?.height }}>
+              <Animated.View key={Math.random()} style={{ width: containerSize?.width, height: containerSize?.height }}>
                 {screenRenderFunction(scrollIndexAnimated, backgroundColourAnimated)}
               </Animated.View>
             ))}

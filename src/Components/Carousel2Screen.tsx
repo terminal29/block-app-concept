@@ -29,7 +29,7 @@ const Carousel2Screen = (props: Carousel2ScreenProps) => {
   const pressStateSlow = withSpringTransition(pressState, SpringUtils.makeConfigFromBouncinessAndSpeed({ ...SpringUtils.makeDefaultConfig(), bounciness: 10, speed: 50 }));
 
   return (
-    <Animated.View style={[styles.container, { backgroundColor: animatedColour }]}>
+    <Animated.View style={[styles.container]}>
       <Animated.View style={[styles.innerContainer, { transform: [{ scale: add(1, multiply(pressStateSlow, 0.1)) }] }]}>
         <TouchableWithoutFeedback onPressIn={() => pressState.setValue(1)} onPressOut={() => pressState.setValue(0)} onPress={props.onPressed}>
           <Animated.View style={styles.whiteContainer}>
