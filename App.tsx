@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import "react-native-gesture-handler";
+import { NavigationContainer } from "@react-navigation/native";
+import React, { useState, useEffect, useRef, useMemo, useCallback, createRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { createStore } from "redux";
 import { Provider } from "react-redux";
 import ReduxState from "./src/State/ReduxState";
 import Reducer from "./src/State/Reducer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import Animated, { useCode, debug } from "react-native-reanimated";
 import SwipeCarousel from "./src/Components/Carousel/SwipeCarousel";
-import SwipeCarouselScreen from "./src/Components/Carousel/SwipeCarouselScreen";
+import { createStackNavigator } from "@react-navigation/stack";
+import BlocksList from "./src/Components/ItemLists/BlocksList";
 
 const initialState: ReduxState = {
   blocks: [
@@ -52,7 +54,7 @@ const initialState: ReduxState = {
 
 const store = createStore((state: ReduxState = initialState, action) => Reducer(state, action));
 
-//const stackNavigator = createStackNavigator();
+const Stack = createStackNavigator();
 
 const screenProps = [
   {
@@ -61,9 +63,7 @@ const screenProps = [
     accentColour: "#05668D",
     backgroundColour: "#243F51",
     iconName: "cube-outline",
-    onPressed: () => {
-      console.log("blocks");
-    },
+    navigationPath: "blocks",
   },
   {
     title: "Building Guides",
@@ -71,9 +71,7 @@ const screenProps = [
     accentColour: "#028090",
     iconName: "map-outline",
     backgroundColour: "#24484F",
-    onPressed: () => {
-      console.log("building_guides");
-    },
+    navigationPath: "building_guides",
   },
   {
     title: "Weapons & Items",
@@ -81,9 +79,7 @@ const screenProps = [
     accentColour: "#00A896",
     iconName: "sword",
     backgroundColour: "#2A5A50",
-    onPressed: () => {
-      console.log("weapons_and_items");
-    },
+    navigationPath: "weapons_and_items",
   },
   {
     title: "Structures",
@@ -91,14 +87,13 @@ const screenProps = [
     accentColour: "#02C39A",
     backgroundColour: "#306853",
     iconName: "castle",
-    onPressed: () => {
-      console.log("structures");
-    },
+    navigationPath: "structures",
   },
 ];
 
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const navigatorRef = useRef(null);
 
   useEffect(() => {
     // Preload fonts to fix a bug where animated icons wouldn't take animated styles that were set before the font was loaded
@@ -107,9 +102,33 @@ export default function App() {
     });
   }, []);
 
-  const SwipeCarouselImpl = useMemo(() => <SwipeCarousel buttons={screenProps} />, []);
+  const SwipeCarouselImpl = useCallback(
+    () => <SwipeCarousel buttons={screenProps.map((screenProp) => ({ ...screenProp, onPressed: () => navigatorRef.current?.navigate(screenProp.navigationPath) }))} />,
+    []
+  );
 
-  return <Provider store={store}>{SwipeCarouselImpl}</Provider>;
+  const BlocksScreenImpl = () => <BlocksList></BlocksList>;
+
+  const StackNavigationImpl = (
+    <Stack.Navigator
+      headerMode="none"
+      screenOptions={{
+        cardStyle: {
+          backgroundColor: "transparent",
+          opacity: 1,
+        },
+      }}
+    >
+      <Stack.Screen name="Menu" component={SwipeCarouselImpl} />
+      <Stack.Screen name="blocks" component={BlocksScreenImpl} />
+    </Stack.Navigator>
+  );
+
+  return (
+    <NavigationContainer ref={navigatorRef}>
+      <Provider store={store}>{StackNavigationImpl}</Provider>
+    </NavigationContainer>
+  );
 }
 
 const styles = StyleSheet.create({
