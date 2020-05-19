@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { createStore } from "redux";
 import { Provider } from "react-redux";
 import ReduxState from "./src/State/ReduxState";
 import Reducer from "./src/State/Reducer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import MainScroller from "./src/Components/MainScroller";
 import Animated, { useCode, debug } from "react-native-reanimated";
-import BlocksList from "./src/Components/BlocksList";
+import SwipeCarousel from "./src/Components/Carousel/SwipeCarousel";
+import SwipeCarouselScreen from "./src/Components/Carousel/SwipeCarouselScreen";
 
 const initialState: ReduxState = {
   blocks: [
@@ -70,12 +70,10 @@ export default function App() {
       accentColour: "#05668D",
       backgroundColour: "#243F51",
       iconName: "cube-outline",
-      onPressed: (fin: boolean) => {
-        if (fin) {
-          console.log("blocks");
-          setInMenu(false);
-          setScreenName("blocks");
-        }
+      onPressed: () => {
+        console.log("blocks");
+        setInMenu(false);
+        setScreenName("blocks");
       },
     },
     {
@@ -83,12 +81,10 @@ export default function App() {
       accentColour: "#028090",
       iconName: "map-outline",
       backgroundColour: "#24484F",
-      onPressed: (fin: boolean) => {
-        if (fin) {
-          console.log("building_guides");
-          setInMenu(false);
-          setScreenName("building_guides");
-        }
+      onPressed: () => {
+        console.log("building_guides");
+        setInMenu(false);
+        setScreenName("building_guides");
       },
     },
     {
@@ -96,12 +92,10 @@ export default function App() {
       accentColour: "#00A896",
       iconName: "sword",
       backgroundColour: "#2A5A50",
-      onPressed: (fin: boolean) => {
-        if (fin) {
-          console.log("weapons_and_items");
-          setInMenu(false);
-          setScreenName("weapons_and_items");
-        }
+      onPressed: () => {
+        console.log("weapons_and_items");
+        setInMenu(false);
+        setScreenName("weapons_and_items");
       },
     },
     {
@@ -109,24 +103,17 @@ export default function App() {
       accentColour: "#02C39A",
       backgroundColour: "#306853",
       iconName: "castle",
-      onPressed: (fin: boolean) => {
-        if (fin) {
-          console.log("structures");
-          setInMenu(false);
-          setScreenName("structures");
-        }
+      onPressed: () => {
+        console.log("structures");
+        setInMenu(false);
+        setScreenName("structures");
       },
     },
   ];
 
-  const carouselBackgroundColourNode = useRef(new Animated.Value(0));
-  const appBackgroundColour = carouselBackgroundColourNode.current;
-
   return (
     <Provider store={store}>
-      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: appBackgroundColour }]}>
-        {inMenu && <MainScroller buttons={screenProps} carouselBackgroundColourNode={carouselBackgroundColourNode.current} />}
-      </Animated.View>
+      <SwipeCarousel buttons={screenProps} />
     </Provider>
   );
 }
