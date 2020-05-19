@@ -18,7 +18,12 @@ const SwipeCarousel = (props: SwipeCarouselProps) => {
     inputRange: props.buttons.map((_, index) => index),
     outputRange: props.buttons.map((button) => button.backgroundColour),
   });
-  const renderItem = useCallback(({ item, index }) => <SwipeCarouselScreen item={item} index={index} containerSize={carouselContainerSize} />, [carouselContainerSize]);
+  const renderItem = useCallback(
+    ({ item, index }) => (
+      <SwipeCarouselScreen item={item} index={index} containerSize={carouselContainerSize} animatedIndex={animatedIndex.current} secondaryColour={animatedColour} />
+    ),
+    [carouselContainerSize]
+  );
   return (
     <Animated.View
       style={[StyleSheet.absoluteFill, { backgroundColor: animatedColour }]}
@@ -35,7 +40,6 @@ const SwipeCarousel = (props: SwipeCarouselProps) => {
           onScroll={(event) => {
             animatedIndex.current.setValue(event.nativeEvent.contentOffset.x / carouselContainerSize.width);
           }}
-          scrollInterpolator={() => ({ inputRange: [0, 1], outputRange: [0, 1] })}
         />
       )}
     </Animated.View>
