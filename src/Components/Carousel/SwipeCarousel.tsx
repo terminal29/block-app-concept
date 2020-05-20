@@ -5,22 +5,40 @@ import SwipeCarouselScreen, { SwipeCarouselScreenProps } from "./SwipeCarouselSc
 import Carousel from "react-native-snap-carousel";
 import Animated from "react-native-reanimated";
 import { interpolateColor, withSpringTransition } from "react-native-redash";
+import { connect } from "react-redux";
+import ReduxState from "../../State/ReduxState";
+import { useNavigation } from "@react-navigation/native";
 
 interface SwipeCarouselProps {
-  buttons: SwipeCarouselScreenProps[];
+  carouselScreenProps: Array<SwipeCarouselScreenProps>;
 }
 
+const MapStateToProps = (state: ReduxState) => {
+  return { carouselScreenProps: state.carouselScreenProps };
+};
+
+const MapDispatchToProps = (dispatch: any) => {
+  return {};
+};
+
 const SwipeCarousel = (props: SwipeCarouselProps) => {
+  const navigator = useNavigation();
   const [carouselContainerSize, setCarouselContainerSize] = useState({ width: 0, height: 0 });
   const animatedIndex = useRef(new Animated.Value<number>(0));
   const slowAnimatedIndex = useRef(withSpringTransition(animatedIndex.current));
   const animatedColour = interpolateColor(slowAnimatedIndex.current, {
-    inputRange: props.buttons.map((_, index) => index),
-    outputRange: props.buttons.map((button) => button.backgroundColour),
+    inputRange: props.carouselScreenProps.map((_, index) => index),
+    outputRange: props.carouselScreenProps.map((button) => button.backgroundColour),
   });
   const renderItem = useCallback(
     ({ item, index }) => (
-      <SwipeCarouselScreen item={item} index={index} containerSize={carouselContainerSize} animatedIndex={animatedIndex.current} secondaryColour={animatedColour} />
+      <SwipeCarouselScreen
+        item={{ ...item, onPressed: () => navigator.navigate(item.navigationPath) }}
+        index={index}
+        containerSize={carouselContainerSize}
+        animatedIndex={animatedIndex.current}
+        secondaryColour={animatedColour}
+      />
     ),
     [carouselContainerSize]
   );
@@ -31,7 +49,7 @@ const SwipeCarousel = (props: SwipeCarouselProps) => {
     >
       {carouselContainerSize.width !== 0 && carouselContainerSize.height !== 0 && (
         <Carousel
-          data={props.buttons}
+          data={props.carouselScreenProps}
           renderItem={renderItem}
           itemWidth={carouselContainerSize.width}
           itemHeight={carouselContainerSize.height}
@@ -46,7 +64,7 @@ const SwipeCarousel = (props: SwipeCarouselProps) => {
   );
 };
 
-export default SwipeCarousel;
+export default connect(MapStateToProps, MapDispatchToProps)(SwipeCarousel);
 
 const styles = StyleSheet.create({
   container: {},

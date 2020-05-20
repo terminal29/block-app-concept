@@ -1,16 +1,17 @@
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import React, { useState, useEffect, useRef, useMemo, useCallback, createRef } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Easing } from "react-native";
 import { createStore } from "redux";
 import { Provider } from "react-redux";
 import ReduxState from "./src/State/ReduxState";
 import Reducer from "./src/State/Reducer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import SwipeCarousel from "./src/Components/Carousel/SwipeCarousel";
-import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
+import { createStackNavigator, TransitionPresets, CardStyleInterpolators } from "@react-navigation/stack";
 import BlocksList from "./src/Components/ItemLists/BlocksList";
 import { TransitionSpec } from "@react-navigation/stack/lib/typescript/src/types";
+import SquareAnimator from "./src/Components/ItemLists/SquareAnimator";
 
 const initialState: ReduxState = {
   blocks: [
@@ -51,56 +52,51 @@ const initialState: ReduxState = {
       name: "wood_half_planks",
     },
   ],
+  carouselScreenProps: [
+    {
+      title: "Blocks",
+      titleColour: "white",
+      accentColour: "#05668D",
+      backgroundColour: "#243F51",
+      iconName: "cube-outline",
+      navigationPath: "blocks",
+    },
+    {
+      title: "Building Guides",
+      titleColour: "white",
+      accentColour: "#028090",
+      iconName: "map-outline",
+      backgroundColour: "#24484F",
+      navigationPath: "building_guides",
+    },
+    {
+      title: "Weapons & Items",
+      titleColour: "white",
+      accentColour: "#00A896",
+      iconName: "sword",
+      backgroundColour: "#2A5A50",
+      navigationPath: "weapons_and_items",
+    },
+    {
+      title: "Structures",
+      titleColour: "white",
+      accentColour: "#02C39A",
+      backgroundColour: "#306853",
+      iconName: "castle",
+      navigationPath: "structures",
+    },
+  ],
 };
 
 const store = createStore((state: ReduxState = initialState, action) => Reducer(state, action));
 
 const Stack = createStackNavigator();
 
-const screenProps = [
-  {
-    title: "Blocks",
-    titleColour: "white",
-    accentColour: "#05668D",
-    backgroundColour: "#243F51",
-    iconName: "cube-outline",
-    navigationPath: "blocks",
-  },
-  {
-    title: "Building Guides",
-    titleColour: "white",
-    accentColour: "#028090",
-    iconName: "map-outline",
-    backgroundColour: "#24484F",
-    navigationPath: "building_guides",
-  },
-  {
-    title: "Weapons & Items",
-    titleColour: "white",
-    accentColour: "#00A896",
-    iconName: "sword",
-    backgroundColour: "#2A5A50",
-    navigationPath: "weapons_and_items",
-  },
-  {
-    title: "Structures",
-    titleColour: "white",
-    accentColour: "#02C39A",
-    backgroundColour: "#306853",
-    iconName: "castle",
-    navigationPath: "structures",
-  },
-];
-
-const config: TransitionSpec = {
-  animation: "spring",
+const instantTransition: TransitionSpec = {
+  animation: "timing",
   config: {
-    stiffness: 1000,
-    damping: 50,
-    mass: 3,
-    overshootClamping: false,
-    restDisplacementThreshold: 0.01,
-    restSpeedThreshold: 0.01,
+    duration: 0,
+    easing: Easing.linear,
   },
 };
 
@@ -115,12 +111,9 @@ export default function App() {
     });
   }, []);
 
-  const SwipeCarouselImpl = useCallback(
-    () => <SwipeCarousel buttons={screenProps.map((screenProp) => ({ ...screenProp, onPressed: () => navigatorRef.current?.navigate(screenProp.navigationPath) }))} />,
-    []
-  );
+  const SwipeCarouselImpl = useCallback(() => <SwipeCarousel />, []);
 
-  const BlocksScreenImpl = () => <BlocksList></BlocksList>;
+  const BlocksScreenImpl = () => <SquareAnimator navigationRouteName={"blocks"} screenElement={<BlocksList></BlocksList>} />;
 
   const StackNavigationImpl = (
     <Stack.Navigator
@@ -130,7 +123,11 @@ export default function App() {
           backgroundColor: "transparent",
           opacity: 1,
         },
-        ...TransitionPresets.ScaleFromCenterAndroid,
+        transitionSpec: {
+          open: instantTransition,
+          close: instantTransition,
+        },
+        cardStyleInterpolator: CardStyleInterpolators.forNoAnimation,
         gestureEnabled: false,
       }}
     >

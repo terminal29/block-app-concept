@@ -12,6 +12,7 @@ export interface SwipeCarouselScreenProps {
   accentColour: string;
   backgroundColour: string;
   iconName: string;
+  navigationPath: string;
   onPressed?: () => void;
 }
 
