@@ -8,8 +8,9 @@ import ReduxState from "./src/State/ReduxState";
 import Reducer from "./src/State/Reducer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import SwipeCarousel from "./src/Components/Carousel/SwipeCarousel";
-import { createStackNavigator } from "@react-navigation/stack";
+import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
 import BlocksList from "./src/Components/ItemLists/BlocksList";
+import { TransitionSpec } from "@react-navigation/stack/lib/typescript/src/types";
 
 const initialState: ReduxState = {
   blocks: [
@@ -91,6 +92,18 @@ const screenProps = [
   },
 ];
 
+const config: TransitionSpec = {
+  animation: "spring",
+  config: {
+    stiffness: 1000,
+    damping: 50,
+    mass: 3,
+    overshootClamping: false,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+  },
+};
+
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const navigatorRef = useRef(null);
@@ -117,9 +130,11 @@ export default function App() {
           backgroundColor: "transparent",
           opacity: 1,
         },
+        ...TransitionPresets.ScaleFromCenterAndroid,
+        gestureEnabled: false,
       }}
     >
-      <Stack.Screen name="Menu" component={SwipeCarouselImpl} />
+      <Stack.Screen name="menu" component={SwipeCarouselImpl} />
       <Stack.Screen name="blocks" component={BlocksScreenImpl} />
     </Stack.Navigator>
   );
