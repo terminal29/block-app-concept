@@ -5,7 +5,7 @@ import ReduxState from "../../State/ReduxState";
 import { SwipeCarouselScreenProps } from "../Carousel/SwipeCarouselScreen";
 import { useNavigation } from "@react-navigation/native";
 import { useRef, useState, useEffect, useLayoutEffect } from "react";
-import Animated, { useCode, cond, and, eq, diff, set, call, neq } from "react-native-reanimated";
+import Animated, { useCode, cond, and, eq, diff, set, call, neq, SpringUtils, multiply } from "react-native-reanimated";
 import { withSpringTransition } from "react-native-redash";
 import DummySquare from "../Carousel/DummySquare";
 
@@ -39,7 +39,9 @@ function SquareAnimator(props: SquareAnimatorProps) {
   const navigation = useNavigation();
   const oldAnimationState = useRef(new Animated.Value<number>(0));
   const openAnimationState = useRef(new Animated.Value<number>(0));
-  const openAnimationStateSlow = useRef(withSpringTransition(openAnimationState.current));
+  const openAnimationStateSlow = useRef(
+    withSpringTransition(openAnimationState.current, SpringUtils.makeConfigFromBouncinessAndSpeed({ ...SpringUtils.makeDefaultConfig(), bounciness: 0, speed: 20 }))
+  );
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [animating, setAnimating] = useState(true);
   const [open, setOpen] = useState(false);
