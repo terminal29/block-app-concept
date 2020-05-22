@@ -7,6 +7,7 @@ import Redash, { useGestureHandler, withSpringTransition, spring, colorForBackgr
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Svg, { Circle, Rect } from "react-native-svg";
 import RainbowBorder from "../RainbowBorder";
+import { useRef } from "react";
 
 export interface SwipeCarouselScreenProps {
   title: string;
@@ -29,33 +30,33 @@ export interface SwipeCarouselScreenPropsInt {
 const AnimatedIcon = Animated.createAnimatedComponent(MaterialCommunityIcons);
 
 const SwipeCarouselScreen = (props: SwipeCarouselScreenPropsInt) => {
-  const pressState = new Animated.Value<number>(0);
-  const rotator = multiply(1, useLoop(1000, false));
-  const pressStateSlow = withSpringTransition(pressState, SpringUtils.makeConfigFromBouncinessAndSpeed({ ...SpringUtils.makeDefaultConfig(), bounciness: 10, speed: 50 }));
-  const animatedIconScale = interpolate(pressStateSlow, { inputRange: [0, 1], outputRange: [1, 0.95] });
+  const [showBorder, setBorderShown] = React.useState(false);
+  const pressState = useRef(new Animated.Value<number>(0));
+  const rotator = useRef(multiply(2 * Math.PI, useLoop(1000, false)));
+  const pressStateSlow = useRef(
+    withSpringTransition(pressState.current, SpringUtils.makeConfigFromBouncinessAndSpeed({ ...SpringUtils.makeDefaultConfig(), bounciness: 10, speed: 50 }))
+  );
+  const animatedIconScale = useRef(interpolate(pressStateSlow.current, { inputRange: [0, 1], outputRange: [1, 0.95] }));
   return (
     <View style={[{ width: props.containerSize.width, height: props.containerSize.height }, styles.container]}>
-      <Animated.View style={[styles.box, { transform: [{ scale: animatedIconScale }] }]}>
+      <Animated.View style={[styles.box, { transform: [{ scale: animatedIconScale.current }] }]}>
         <RainbowBorder
-          stops={[
-            {
-              percentage: 0,
-              colour: "#000",
-            },
-            {
-              percentage: 1,
-              colour: "#fff",
-            },
-          ]}
           borderStyle={{ opacity: 1 }}
           style={[StyleSheet.absoluteFill, { borderRadius: 30, overflow: "hidden" }]}
-          borderRadius={50}
-          borderThickness={10}
-          angle={multiply(pressStateSlow, 45)}
+          borderRadius={28}
+          borderThickness={multiply(pressStateSlow.current, 3)}
+          angle={rotator.current}
+          showBorder={showBorder}
         >
           <TouchableWithoutFeedback
-            onPressIn={() => pressState.setValue(1)}
-            onPressOut={() => pressState.setValue(0)}
+            onPressIn={() => {
+              pressState.current.setValue(1);
+              setBorderShown(true);
+            }}
+            onPressOut={() => {
+              pressState.current.setValue(0);
+              setBorderShown(false);
+            }}
             onPress={() => props.item.onPressed?.()}
             style={StyleSheet.absoluteFill}
             containerStyle={StyleSheet.absoluteFill}
