@@ -1,12 +1,12 @@
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import React, { useState, useEffect, useRef, useMemo, useCallback, createRef } from "react";
-import { StyleSheet, Text, View, Easing } from "react-native";
+import { StyleSheet, Text, View, Easing, StatusBar } from "react-native";
 import { createStore } from "redux";
 import { Provider } from "react-redux";
 import ReduxState from "./src/State/ReduxState";
 import Reducer from "./src/State/Reducer";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import SwipeCarousel from "./src/Components/Carousel/SwipeCarousel";
 import { createStackNavigator, TransitionPresets, CardStyleInterpolators } from "@react-navigation/stack";
 import BlocksList from "./src/Components/ItemLists/BlocksList";
@@ -106,14 +106,15 @@ export default function App() {
 
   useEffect(() => {
     // Preload fonts to fix a bug where animated icons wouldn't take animated styles that were set before the font was loaded
-    MaterialCommunityIcons.loadFont().then((_: any) => {
+    MaterialCommunityIcons.loadFont().then(async (_: any) => {
+      await Ionicons.loadFont();
       setFontsLoaded(true);
     });
   }, []);
 
   const SwipeCarouselImpl = useCallback(() => <SwipeCarousel />, []);
 
-  const BlocksScreenImpl = () => <SquareAnimator navigationRouteName={"blocks"} screenElement={<BlocksList></BlocksList>} />;
+  const BlocksScreenImpl = () => <SquareAnimator navigationRouteName={"blocks"} renderScreenElement={(backFn) => <BlocksList backFn={backFn}></BlocksList>} />;
 
   const StackNavigationImpl = (
     <Stack.Navigator
@@ -138,6 +139,7 @@ export default function App() {
 
   return (
     <NavigationContainer ref={navigatorRef}>
+      <View style={{ height: StatusBar.currentHeight }} />
       <Provider store={store}>{StackNavigationImpl}</Provider>
     </NavigationContainer>
   );

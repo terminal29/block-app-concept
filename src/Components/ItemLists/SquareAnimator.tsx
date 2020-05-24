@@ -11,7 +11,7 @@ import DummySquare from "../Carousel/DummySquare";
 
 interface SquareAnimatorProps {
   navigationRouteName: string;
-  screenElement: any;
+  renderScreenElement: (backFn: () => void) => void;
 }
 
 const MapStateToProps = (state: ReduxState) => {
@@ -96,7 +96,7 @@ function SquareAnimator(props: SquareAnimatorProps) {
           containerSize={containerSize}
         />
       )}
-      {!animating && open && typedProps.screenElement}
+      {!animating && open && typedProps.renderScreenElement(onBackPressed)}
     </View>
   );
 }
