@@ -61,10 +61,10 @@ const smallIconSize = 100;
 const largeIconSize = 600;
 const maxHeaderHeight = 250;
 const minHeaderHeight = 80;
+const headerSubHeight = 30;
 
 function BlocksList(props: BlocksListProps) {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  const [innerScrollEnabled, setInnerScrollEnabled] = useState(false);
   const [titleWidth, setTitleWidth] = useState(0);
   const navigation = useNavigation();
   const typedProps = props as BlocksListProps & BlockListReduxProps;
@@ -101,103 +101,85 @@ function BlocksList(props: BlocksListProps) {
 
   const OnBackPressed = useCallback(() => navigation.goBack(), [navigation]);
 
-  useCode(
-    () =>
-      block([
-        call([headerCollapseProgress], (args: readonly any[]) => {
-          if (args[0] >= 0.99) {
-            if (!innerScrollEnabled) {
-              setInnerScrollEnabled(true);
-            }
-          } else {
-            if (innerScrollEnabled) {
-              setInnerScrollEnabled(false);
-            }
-          }
-        }),
-      ]),
-    [innerScrollEnabled]
-  );
-
-  const HeaderImpl = useMemo(
-    () => (
-      <Animated.View style={[styles.floatingHeader, { height: headerHeight }]}>
-        <Animated.View style={[styles.screenTitleContainer, { opacity: greaterThan(animatedHeaderProgress, 0) }]}>
-          <Animated.View style={[StyleSheet.absoluteFill, { opacity: animatedHeaderProgress }]}>
-            <Animated.View style={{ position: "absolute", left: 15, top: 15, width: 50, height: 50 }}>
-              <TouchableOpacity
-                style={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
-                containerStyle={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
-                onPress={typedProps.backFn}
-              >
-                <AnimatedIonicon size={35} style={{ color: "white" }} name="ios-arrow-back" />
-              </TouchableOpacity>
-            </Animated.View>
-
-            <Animated.View
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [50, -5] }),
-                height: minHeaderHeight,
-                alignItems: "flex-end",
-              }}
+  const HeaderImpl = (
+    <Animated.View style={[styles.floatingHeader, { height: headerHeight, backgroundColor: typedProps.screenProps.backgroundColour }]}>
+      <Animated.View style={[styles.screenTitleContainer, { opacity: greaterThan(animatedHeaderProgress, 0) }]}>
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: animatedHeaderProgress }]}>
+          <Animated.View style={{ position: "absolute", left: 15, top: 15, width: 50, height: 50 }}>
+            <TouchableOpacity
+              style={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
+              containerStyle={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
+              onPress={typedProps.backFn}
             >
-              <Animated.View
-                style={{
-                  width: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [containerSize.width, 100] }),
-                  alignItems: "center",
-                  height: minHeaderHeight,
-                  transform: [{ scale: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [1, 0.45] }) }],
-                }}
-              >
-                <AnimatedIcon name={typedProps.screenProps.iconName} size={smallIconSize} style={styles.titleIcon} />
-              </Animated.View>
-            </Animated.View>
+              <AnimatedIonicon size={35} style={{ color: "white" }} name="ios-arrow-back" />
+            </TouchableOpacity>
           </Animated.View>
 
-          <Animated.Text
-            onLayout={OnTitleLayout}
-            style={[
-              styles.titleText,
-              {
-                transform: [{ scale: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [1, 0.75] }) }],
-                color: interpolateColor(animatedHeaderProgress, { inputRange: [0, 1], outputRange: ["rgba(255,255,255,0)", "rgba(255,255,255,1)"] }),
-                top: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [150, 12] }),
-                left: interpolate(headerCollapseProgress, {
-                  inputRange: [0, 1],
-                  outputRange: [divide(sub(containerSize.width, titleWidth), 2), 65],
-                  extrapolate: Extrapolate.CLAMP,
-                }),
-              },
-            ]}
+          <Animated.View
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [50, -5] }),
+              height: minHeaderHeight,
+              alignItems: "flex-end",
+            }}
           >
-            {typedProps.screenProps.title}
-          </Animated.Text>
+            <Animated.View
+              style={{
+                width: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [containerSize.width, 100] }),
+                alignItems: "center",
+                height: minHeaderHeight,
+                transform: [{ scale: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [1, 0.45] }) }],
+              }}
+            >
+              <AnimatedIcon name={typedProps.screenProps.iconName} size={smallIconSize} style={styles.titleIcon} />
+            </Animated.View>
+          </Animated.View>
         </Animated.View>
+
+        <Animated.Text
+          onLayout={OnTitleLayout}
+          style={[
+            styles.titleText,
+            {
+              transform: [{ scale: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [1, 0.75] }) }],
+              color: interpolateColor(animatedHeaderProgress, { inputRange: [0, 1], outputRange: ["rgba(255,255,255,0)", "rgba(255,255,255,1)"] }),
+              top: interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [150, 12] }),
+              left: interpolate(headerCollapseProgress, {
+                inputRange: [0, 1],
+                outputRange: [divide(sub(containerSize.width, titleWidth), 2), 65],
+                extrapolate: Extrapolate.CLAMP,
+              }),
+            },
+          ]}
+        >
+          {typedProps.screenProps.title}
+        </Animated.Text>
       </Animated.View>
-    ),
-    [containerSize.width, containerSize.height, typedProps.screenProps.title, titleWidth]
+    </Animated.View>
   );
+
+  const HeaderBase = <Animated.View style={[styles.scrollHeader, { height: headerSubHeight, top: headerHeight }]}></Animated.View>;
 
   return (
     <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: animatedBackgroundColour }]} onLayout={OnContainerLayout}>
-      {containerSize.width !== 0 && HeaderImpl}
-      <Animated.View style={styles.scrollContainer}>
-        <Animated.ScrollView nestedScrollEnabled={true} style={{ flex: 1 }} onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }])}>
-          <Animated.View style={[{ marginTop: maxHeaderHeight, height: sub(containerSize.height, minHeaderHeight) }, styles.innerScrollContainer]}>
-            <Animated.ScrollView nestedScrollEnabled={true} scrollEnabled={innerScrollEnabled}>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-            </Animated.ScrollView>
-          </Animated.View>
-        </Animated.ScrollView>
-      </Animated.View>
+      <Animated.ScrollView
+        style={[styles.scroller, { paddingTop: maxHeaderHeight }]}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }])}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.innerScrollContainer}>
+          <Text style={{ height: 300 }}>Block</Text>
+          <Text style={{ height: 300 }}>Block</Text>
+          <Text style={{ height: 300 }}>Block</Text>
+          <Text style={{ height: 300 }}>Block</Text>
+          <Text style={{ height: 300 }}>Block</Text>
+          <Text style={{ height: 300 }}>Block</Text>
+        </View>
+      </Animated.ScrollView>
+      {HeaderImpl}
+      {HeaderBase}
     </Animated.View>
   );
 }
@@ -208,14 +190,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContainer: {
+  scroller: {
     ...StyleSheet.absoluteFillObject,
   },
   screenTitleContainer: {},
   floatingHeader: {
     ...StyleSheet.absoluteFillObject,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "white",
   },
   titleText: {
     position: "absolute",
@@ -230,9 +210,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     color: "rgba(255,255,255,0.05)",
   },
-  innerScrollContainer: {
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+  scrollHeader: {
+    borderTopLeftRadius: headerSubHeight,
+    borderTopRightRadius: headerSubHeight,
     backgroundColor: "white",
+    height: headerSubHeight,
   },
+  innerScrollContainer: {},
 });
