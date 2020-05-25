@@ -58,7 +58,7 @@ const AnimatedIcon = Animated.createAnimatedComponent(MaterialCommunityIcons);
 const AnimatedIonicon = Animated.createAnimatedComponent(Ionicons);
 
 const smallIconSize = 100;
-const largeIconSize = 600;
+const largeIconSize = 500;
 const maxHeaderHeight = 250;
 const minHeaderHeight = 80;
 const headerSubHeight = 30;
@@ -66,15 +66,12 @@ const headerSubHeight = 30;
 function BlocksList(props: BlocksListProps) {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [titleWidth, setTitleWidth] = useState(0);
-  const navigation = useNavigation();
   const typedProps = props as BlocksListProps & BlockListReduxProps;
   const fadeInState = useRef(new Animated.Value<number>(0)).current;
-  const fadeInStateSlow = useRef(withTimingTransition(fadeInState, { easing: Easing.ease, duration: 1000 })).current;
+  const fadeInStateSlow = useRef(withTimingTransition(fadeInState, { easing: Easing.ease, duration: 500 })).current;
 
-  const animatedBackgroundColour = useRef(interpolateColor(fadeInStateSlow, { inputRange: [0, 0.3], outputRange: ["rgba(0,0,0,0)", typedProps.screenProps.backgroundColour] }))
-    .current;
-  const animatedHeaderProgress = useRef(interpolate(fadeInStateSlow, { inputRange: [0.3, 0.6], outputRange: [0, 1], extrapolate: Extrapolate.CLAMP })).current;
-  const animatedScrollerProgress = useRef(interpolate(fadeInStateSlow, { inputRange: [0.6, 1], outputRange: [0, 1], extrapolate: Extrapolate.CLAMP })).current;
+  const animatedHeaderProgress = useRef(interpolate(fadeInStateSlow, { inputRange: [0.0, 0.6], outputRange: [0, 1], extrapolate: Extrapolate.CLAMP })).current;
+  const animatedScrollerProgress = useRef(interpolate(fadeInStateSlow, { inputRange: [0.4, 1], outputRange: [0, 1], extrapolate: Extrapolate.CLAMP })).current;
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerHeight = interpolate(scrollY, {
@@ -99,12 +96,27 @@ function BlocksList(props: BlocksListProps) {
 
   const OnTitleLayout = useCallback((event: LayoutChangeEvent) => setTitleWidth(event.nativeEvent.layout.width), []);
 
-  const OnBackPressed = useCallback(() => navigation.goBack(), [navigation]);
-
   const HeaderImpl = (
     <Animated.View style={[styles.floatingHeader, { height: headerHeight, backgroundColor: typedProps.screenProps.backgroundColour }]}>
       <Animated.View style={[styles.screenTitleContainer, { opacity: greaterThan(animatedHeaderProgress, 0) }]}>
         <Animated.View style={[StyleSheet.absoluteFill, { opacity: animatedHeaderProgress }]}>
+          <Animated.View
+            style={{
+              position: "absolute",
+              left: (containerSize.width - largeIconSize) / 2,
+              right: 0,
+              top: add(-largeIconSize / 2 + 40, interpolate(headerCollapseProgress, { inputRange: [0, 1], outputRange: [50, -5] })),
+              height: largeIconSize,
+              width: largeIconSize,
+              alignItems: "center",
+            }}
+          >
+            <AnimatedIcon
+              name={typedProps.screenProps.iconName}
+              size={largeIconSize}
+              style={[styles.titleIconBackground, { left: 0, right: 0, width: largeIconSize, height: largeIconSize }]}
+            />
+          </Animated.View>
           <Animated.View style={{ position: "absolute", left: 15, top: 15, width: 50, height: 50 }}>
             <TouchableOpacity
               style={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
@@ -160,26 +172,33 @@ function BlocksList(props: BlocksListProps) {
     </Animated.View>
   );
 
-  const HeaderBase = <Animated.View style={[styles.scrollHeader, { height: headerSubHeight, top: headerHeight }]}></Animated.View>;
-
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: animatedBackgroundColour }]} onLayout={OnContainerLayout}>
-      <Animated.ScrollView
-        style={[styles.scroller, { paddingTop: maxHeaderHeight }]}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }])}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.innerScrollContainer}>
-          <Text style={{ height: 300 }}>Block</Text>
-          <Text style={{ height: 300 }}>Block</Text>
-          <Text style={{ height: 300 }}>Block</Text>
-          <Text style={{ height: 300 }}>Block</Text>
-          <Text style={{ height: 300 }}>Block</Text>
-          <Text style={{ height: 300 }}>Block</Text>
+    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: typedProps.screenProps.backgroundColour }]} onLayout={OnContainerLayout}>
+      {containerSize.height !== 0 && (
+        <View style={StyleSheet.absoluteFill}>
+          <Animated.ScrollView
+            style={[
+              styles.scroller,
+              {
+                paddingTop: interpolate(animatedScrollerProgress, { inputRange: [0, 1], outputRange: [containerSize.height, maxHeaderHeight] }),
+                opacity: animatedScrollerProgress,
+              },
+            ]}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }])}
+            showsVerticalScrollIndicator={false}
+          >
+            <Animated.View style={styles.innerScrollContainer}>
+              <Text style={{ height: 300 }}>Block</Text>
+              <Text style={{ height: 300 }}>Block</Text>
+              <Text style={{ height: 300 }}>Block</Text>
+              <Text style={{ height: 300 }}>Block</Text>
+              <Text style={{ height: 300 }}>Block</Text>
+              <Text style={{ height: 300 }}>Block</Text>
+            </Animated.View>
+          </Animated.ScrollView>
+          {HeaderImpl}
         </View>
-      </Animated.ScrollView>
-      {HeaderImpl}
-      {HeaderBase}
+      )}
     </Animated.View>
   );
 }
@@ -207,7 +226,6 @@ const styles = StyleSheet.create({
     color: "white",
   },
   titleIconBackground: {
-    position: "absolute",
     color: "rgba(255,255,255,0.05)",
   },
   scrollHeader: {
@@ -216,5 +234,10 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     height: headerSubHeight,
   },
-  innerScrollContainer: {},
+  scrollHeaderInner: {
+    height: headerSubHeight,
+  },
+  innerScrollContainer: {
+    backgroundColor: "white",
+  },
 });
