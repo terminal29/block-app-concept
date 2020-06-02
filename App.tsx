@@ -18,6 +18,7 @@ const initialState: ReduxState = {
     {
       id: 0,
       name: "dirt",
+      iconImage: "https://gamepedia.cursecdn.com/minecraft_gamepedia/thumb/6/62/Dirt_JE2_BE1.png/150px-Dirt_JE2_BE1.png",
     },
     {
       id: 1,

@@ -66,6 +66,7 @@ const largeIconSize = 500;
 const maxHeaderHeight = 250;
 const minHeaderHeight = 80;
 const headerSubHeight = 30;
+const blockListItemHeight = 70;
 
 function BlocksList(props: BlocksListProps) {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -100,8 +101,20 @@ function BlocksList(props: BlocksListProps) {
 
   const OnTitleLayout = useCallback((event: LayoutChangeEvent) => setTitleWidth(event.nativeEvent.layout.width), []);
 
+  const BackButtonImpl = (
+    <Animated.View style={{ position: "absolute", left: 15, top: 15, width: 50, height: 50 }}>
+      <TouchableOpacity
+        style={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
+        containerStyle={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
+        onPress={typedProps.backFn}
+      >
+        <AnimatedIonicon size={35} style={{ color: "white" }} name="ios-arrow-back" />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+
   const HeaderImpl = (
-    <Animated.View style={[styles.floatingHeader, { height: headerHeight, backgroundColor: typedProps.screenProps.backgroundColour }]}>
+    <Animated.View style={[styles.floatingHeader, { height: headerHeight, backgroundColor: typedProps.screenProps.backgroundColour }]} pointerEvents={"none"}>
       <Animated.View style={[styles.screenTitleContainer, { opacity: greaterThan(animatedHeaderProgress, 0) }]}>
         <Animated.View style={[StyleSheet.absoluteFill, { opacity: animatedHeaderProgress }]}>
           <Animated.View
@@ -120,15 +133,6 @@ function BlocksList(props: BlocksListProps) {
               size={largeIconSize}
               style={[styles.titleIconBackground, { left: 0, right: 0, width: largeIconSize, height: largeIconSize }]}
             />
-          </Animated.View>
-          <Animated.View style={{ position: "absolute", left: 15, top: 15, width: 50, height: 50 }}>
-            <TouchableOpacity
-              style={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
-              containerStyle={[StyleSheet.absoluteFill, { justifyContent: "center", alignItems: "center" }]}
-              onPress={typedProps.backFn}
-            >
-              <AnimatedIonicon size={35} style={{ color: "white" }} name="ios-arrow-back" />
-            </TouchableOpacity>
           </Animated.View>
 
           <Animated.View
@@ -176,7 +180,7 @@ function BlocksList(props: BlocksListProps) {
     </Animated.View>
   );
 
-  const RenderBlockButton = useCallback((block: Block) => <BlockListItem key={block.id} block={block} />, []);
+  const RenderBlockButton = useCallback((block: Block) => <BlockListItem height={blockListItemHeight} key={block.id} block={block} />, []);
 
   const scrollPadding = interpolate(animatedScrollerProgress, { inputRange: [0, 1], outputRange: [containerSize.height, maxHeaderHeight] });
 
@@ -188,10 +192,20 @@ function BlocksList(props: BlocksListProps) {
             style={[styles.scroller]}
             showsVerticalScrollIndicator={false}
             data={typedProps.blocks}
-            renderItem={({ item, index }) => <Animated.View style={{ paddingTop: index === 0 ? scrollPadding : 0 }}>{RenderBlockButton(item)}</Animated.View>}
+            renderItem={({ item, index }) => (
+              <Animated.View
+                style={{
+                  paddingTop: index === 0 ? scrollPadding : 0,
+                  paddingBottom: index === typedProps.blocks.length - 1 ? sub(sub(containerSize.height, minHeaderHeight), blockListItemHeight * typedProps.blocks.length) : 0,
+                }}
+              >
+                {RenderBlockButton(item)}
+              </Animated.View>
+            )}
             onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }])}
           />
           {HeaderImpl}
+          {BackButtonImpl}
         </View>
       )}
     </Animated.View>

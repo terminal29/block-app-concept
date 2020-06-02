@@ -6,18 +6,21 @@ import { TouchableNativeFeedback, TouchableOpacity } from "react-native-gesture-
 
 interface BlockListItemProps {
   block: Block;
+  height: number;
+  onPress?: () => void;
 }
 
 const BlockListItem = (props: BlockListItemProps) => {
   return (
-    <TouchableOpacity
-      style={styles.touch}
-      onPress={() => {
-        console.log("Hello");
-      }}
-    >
+    <TouchableOpacity style={[styles.touch, { height: props.height }]} onPress={props.onPress}>
       <View style={styles.container}>
-        <View style={styles.iconContainer}>{props.block.iconImage ? <Image source={props.block.iconImage} /> : <MaterialCommunityIcons name={"file-question"} size={30} />}</View>
+        <View style={styles.iconContainer}>
+          {props.block.iconImage ? (
+            <Image source={{ uri: props.block.iconImage }} width={props.height * 0.8} height={props.height * 0.8} resizeMode={"contain"} />
+          ) : (
+            <MaterialCommunityIcons name={"file-question"} size={30} />
+          )}
+        </View>
         <View style={styles.textContainer}>
           <Text>{props.block.name}</Text>
         </View>
@@ -32,9 +35,7 @@ const BlockListItem = (props: BlockListItemProps) => {
 export default BlockListItem;
 
 const styles = StyleSheet.create({
-  touch: {
-    height: 70,
-  },
+  touch: {},
   container: {
     flex: 1,
     flexDirection: "row",
