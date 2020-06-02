@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback, useMemo } from "react";
-import { StyleSheet, Text, View, BackHandler, LayoutChangeEvent } from "react-native";
+import { StyleSheet, Text, View, BackHandler, LayoutChangeEvent, FlatList } from "react-native";
 import { connect } from "react-redux";
 import { Block } from "../../Structs/Block";
 import ActionType from "../../State/ActionType";
@@ -33,6 +33,8 @@ import ReduxState from "../../State/ReduxState";
 import { SwipeCarouselScreenProps } from "../Carousel/SwipeCarouselScreen";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity, TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { AnimatedList } from "react-native-reanimated-list";
+import BlockListItem from "./BlockListItem";
 
 const MapStateToProps = (state: ReduxState) => {
   return { blocks: state.blocks, screenProps: state.carouselScreenProps.find((prop) => prop.navigationPath === "blocks") };
@@ -56,6 +58,8 @@ interface BlockListReduxProps {
 const AnimatedIcon = Animated.createAnimatedComponent(MaterialCommunityIcons);
 
 const AnimatedIonicon = Animated.createAnimatedComponent(Ionicons);
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 const smallIconSize = 100;
 const largeIconSize = 500;
@@ -172,30 +176,21 @@ function BlocksList(props: BlocksListProps) {
     </Animated.View>
   );
 
+  const RenderBlockButton = useCallback((block: Block) => <BlockListItem key={block.id} block={block} />, []);
+
+  const scrollPadding = interpolate(animatedScrollerProgress, { inputRange: [0, 1], outputRange: [containerSize.height, maxHeaderHeight] });
+
   return (
     <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: typedProps.screenProps.backgroundColour }]} onLayout={OnContainerLayout}>
       {containerSize.height !== 0 && (
         <View style={StyleSheet.absoluteFill}>
-          <Animated.ScrollView
-            style={[
-              styles.scroller,
-              {
-                paddingTop: interpolate(animatedScrollerProgress, { inputRange: [0, 1], outputRange: [containerSize.height, maxHeaderHeight] }),
-                opacity: animatedScrollerProgress,
-              },
-            ]}
-            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }])}
+          <AnimatedFlatList
+            style={[styles.scroller]}
             showsVerticalScrollIndicator={false}
-          >
-            <Animated.View style={styles.innerScrollContainer}>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-              <Text style={{ height: 300 }}>Block</Text>
-            </Animated.View>
-          </Animated.ScrollView>
+            data={typedProps.blocks}
+            renderItem={({ item, index }) => <Animated.View style={{ paddingTop: index === 0 ? scrollPadding : 0 }}>{RenderBlockButton(item)}</Animated.View>}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }])}
+          />
           {HeaderImpl}
         </View>
       )}
@@ -211,6 +206,7 @@ const styles = StyleSheet.create({
   },
   scroller: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: "white",
   },
   screenTitleContainer: {},
   floatingHeader: {
@@ -237,7 +233,5 @@ const styles = StyleSheet.create({
   scrollHeaderInner: {
     height: headerSubHeight,
   },
-  innerScrollContainer: {
-    backgroundColor: "white",
-  },
+  innerScrollContainer: {},
 });
